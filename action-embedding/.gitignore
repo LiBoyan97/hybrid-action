@@ -1,0 +1,12 @@
+# Don't commit any file except if it is a python file
+build/
+Experiments/
+.idea/
+**.png
+**.pt
+**.pyc
+**.log
+**.yaml
+**.c
+**.so
+!.gitignore
