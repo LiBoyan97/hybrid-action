@@ -490,15 +490,14 @@ class PADDPGAgent(Agent):
         soft_update_target_network(self.actor, self.actor_target, self.tau_actor)
         soft_update_target_network(self.critic, self.critic_target, self.tau_critic)
 
-    def self_supervised_update(self, s1, a1, s2, reg=1):
+    def self_supervised_update(self, s1, a1, a2, s2, reg=1):
         self.action_rep.optim.zero_grad()  # clear all the gradients from last run
 
         # If doing online updates, sharing the state features might be problematic!
 
         # ------------ optimize the embeddings ----------------
         #这一块random_machine 原始方法为True
-
-        loss_act_rep = self.action_rep.unsupervised_loss(s1, a1.view(-1),  s2) * reg
+        loss_act_rep = self.action_rep.unsupervised_loss(s1, a1 , a2 , s2) * reg
         loss_act_rep.backward()
 
         # Directly call the optimizer's step fn to bypass lambda traces (if any)
@@ -519,10 +518,10 @@ class PADDPGAgent(Agent):
             actions_combined = torch.from_numpy(actions).to(
                 device)  # make sure to separate actions and action-parameters
             action = actions_combined[:, 0].long()
+            action_para=actions_combined[:, self.num_actions+1:]
             next_states = torch.from_numpy(next_states).to(device)
 
-
-            loss = self.self_supervised_update(states, action.view(-1), next_states)
+            loss = self.self_supervised_update(states, action , action_para, next_states)
             losses.append(loss)
 
             initial_losses.append(np.mean(losses))

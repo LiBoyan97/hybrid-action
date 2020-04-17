@@ -13,6 +13,7 @@ class Action_representation(NeuralNet):
                  state_dim,
                  action_dim,
                  parameter_action_dim,
+                 config,
                  reduced_action_dim=3,
                  embed_lr=1e-4,
                  emb_reg=1e-2,
@@ -25,7 +26,6 @@ class Action_representation(NeuralNet):
         self.action_dim = action_dim
         self.norm_const = np.log(self.action_dim)
         self.emb_reg=emb_reg
-        self.true_embeddings=true_embeddings
         # Action embeddings to project the predicted action into original dimensions
         if true_embeddings:
             embeddings = config.env.get_embeddings() #motions.copy()
@@ -102,7 +102,7 @@ class Action_representation(NeuralNet):
         y = F.tanh(self.fc2(state_cat))
         # x = self.fc1(state_cat)
         # x = F.tanh(self.fc2(x))
-        return x,y
+        return x , y
 
 # 熵：可以表示一个事件A的自信息量，也就是A包含多少信息。
 # KL散度：可以用来表示从事件A的角度来看，事件B有多大不同。
@@ -110,19 +110,15 @@ class Action_representation(NeuralNet):
 #KL散度 = 交叉熵 - 熵 ？？？？
 
 #a1 离散动作 a2 连续动作参数
-    def unsupervised_loss(self, s1, a1, a2 , s2, normalized=True):
-        # x = self.forward(s1, s2)
-        x ,y = self.forward(s1, s2)
+    def unsupervised_loss(self, s1, a1, a2, s2, normalized=True):
+        x, y = self.forward(s1, s2)
         similarity = self.get_match_scores(x)  # Negative euclidean
-
         if normalized:
-            # loss =  F.cross_entropy(similarity, a1, size_average=True)/self.norm_const \
-            #        + self.emb_reg * torch.pow(self.embeddings, 2).mean()/self.reduced_action_dim  #torch.pow 求幂次计算
+            loss = F.mse_loss(y,a2,reduce=True, size_average=True) + F.cross_entropy(similarity, a1, size_average=True)/self.norm_const \
+                   + self.emb_reg * torch.pow(self.embeddings, 2).mean()/self.reduced_action_dim  #torch.pow 求幂次计算
             #torch.mean(input) 输出input 各个元素的的均值，不指定任何参数就是所有元素的算术平均值，指定参数可以计算每一行或者 每一列的算术平均数
-            loss = F.mse_loss(y, a2, reduce=True, size_average=True) + F.cross_entropy(similarity, a1,size_average=True) / self.norm_const \
-                   + self.emb_reg * torch.pow(self.embeddings, 2).mean() / self.reduced_action_dim
         else:
-            loss =  F.cross_entropy(similarity, a1, size_average=True) \
+            loss = F.mse_loss(y,a2,reduce=True, size_average=True) + F.cross_entropy(similarity, a1, size_average=True) \
                    + self.emb_reg * torch.pow(self.embeddings, 2).mean()
         return loss
 
