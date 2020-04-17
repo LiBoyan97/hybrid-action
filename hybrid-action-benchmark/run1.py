@@ -10,7 +10,7 @@ from common import ClickPythonLiteralOption
 from common.wrappers import ScaledParameterisedActionWrapper
 from common.goal_domain import GoalFlattenedActionWrapper, GoalObservationWrapper
 from common.wrappers import ScaledStateWrapper
-from agents.hhqn_2 import HHQNAgent
+from agents.hhqn1 import HHQNAgent
 from agents.pdqn_split import SplitPDQNAgent
 from agents.pdqn_multipass import MultiPassPDQNAgent
 import matplotlib.pyplot as plt

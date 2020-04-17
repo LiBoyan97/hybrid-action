@@ -228,7 +228,8 @@ def run(seed, episodes, evaluation_episodes, batch_size, gamma, inverting_gradie
                                                          (np.array(returns) == 50.).sum() / len(returns)))
             Reward.append(total_reward / (i + 1))
             possibility.append((np.array(returns) == 50.).sum() / len(returns))
-
+    np.savetxt('Reward_pdqn_goal.csv', Reward, delimiter=',')
+    np.savetxt('possibility_pdqn_goal.csv', possibility, delimiter=',')
     plot_reward(Reward)
     plot_p(possibility)
     end_time = time.time()

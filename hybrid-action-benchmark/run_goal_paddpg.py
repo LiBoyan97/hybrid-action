@@ -153,6 +153,8 @@ def run(seed, episodes, evaluation_episodes, batch_size, gamma, inverting_gradie
             next_state = np.array(next_state, dtype=np.float32, copy=False)
 
             next_act, next_act_param, next_all_actions, next_all_action_parameters = agent.act(next_state)
+            print(next_act)
+            print(next_all_actions)
             next_action = pad_action(next_act, next_act_param)
 
             r = reward * reward_scale
@@ -177,6 +179,8 @@ def run(seed, episodes, evaluation_episodes, batch_size, gamma, inverting_gradie
             Reward.append(total_reward / (i + 1))
             possibility.append((np.array(returns) == 50.).sum() / len(returns))
 
+    np.savetxt('Reward_paddpg_goal.csv', Reward, delimiter=',')
+    np.savetxt('possibility_paddpg_goal.csv', possibility, delimiter=',')
     plot_reward(Reward)
     plot_p(possibility)
     end_time = time.time()

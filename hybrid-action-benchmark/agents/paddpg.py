@@ -374,6 +374,7 @@ class PADDPGAgent(Agent):
         self.replay_memory.append(state, action, reward, next_state, terminal)
 
     def _optimize_td_loss(self):
+
         if self.replay_memory.nb_entries < self.batch_size or \
                 self.replay_memory.nb_entries < self.initial_memory_threshold:
             return

@@ -364,6 +364,7 @@ class QPAMDPAgent(Agent):
         return desc
 
     def plot_reward(self):
+        np.savetxt('Reward_qpamdp_goal.csv', self.Reward, delimiter=',')
         plt.plot(np.arange(len(self.Reward))*100, self.Reward, c='y', label='average_reward')
         plt.legend(loc='best')
         plt.ylabel('R')
@@ -371,6 +372,7 @@ class QPAMDPAgent(Agent):
         plt.show()
 
     def plot_p(self):
+        np.savetxt('possibility_qpamdp_goal.csv', self.possibility, delimiter=',')
         plt.plot(np.arange(len(self.possibility))*100, self.possibility, c='y', label='win_possibility')
         plt.legend(loc='best')
         plt.ylabel('R')

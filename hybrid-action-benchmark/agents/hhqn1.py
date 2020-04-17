@@ -509,18 +509,18 @@ class HHQNAgent(Agent):
         #如果将p-dqn中下面这个部分去掉，则性能将会明显下降，甚至不如hhqn
 
 
-        from copy import deepcopy
-        delta_a = deepcopy(action_params.grad.data)
-        # step 2
-        pred_action = self.actor.forward(states)
-        action_params = self.actor_param(states, pred_action)
-        delta_a[:] = self._invert_gradients(delta_a, action_params, grad_type="action_parameters", inplace=True)
-        if self.zero_index_gradients:
-            delta_a[:] = self._zero_index_gradients(delta_a, batch_action_indices=actions, inplace=True)
-        out = -torch.mul(delta_a, action_params)
-        # print(out)
-        self.actor_param.zero_grad()
-        out.backward(torch.ones(out.shape).to(self.device))
+        # from copy import deepcopy
+        # delta_a = deepcopy(action_params.grad.data)
+        # # step 2
+        # pred_action = self.actor.forward(states)
+        # action_params = self.actor_param(states, pred_action)
+        # delta_a[:] = self._invert_gradients(delta_a, action_params, grad_type="action_parameters", inplace=True)
+        # if self.zero_index_gradients:
+        #     delta_a[:] = self._zero_index_gradients(delta_a, batch_action_indices=actions, inplace=True)
+        # out = -torch.mul(delta_a, action_params)
+        # # print(out)
+        # self.actor_param.zero_grad()
+        # out.backward(torch.ones(out.shape).to(self.device))
 
         if self.clip_grad > 0:
             torch.nn.utils.clip_grad_norm_(self.actor_param.parameters(), self.clip_grad)
