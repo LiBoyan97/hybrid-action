@@ -443,16 +443,21 @@ class HHQNAgent(Agent):
         self._add_sample(state, np.concatenate((act, all_action_parameters)).ravel(), reward, next_state,
                          np.concatenate(([next_action[0]], next_action[1])).ravel(), terminal=terminal)
 
-        if self._step >= self.batch_size and self._step >= self.initial_memory_threshold:
-            self._optimize_td_loss()
+        if self._step <=5000 and self._step >= self.batch_size and self._step >= self.initial_memory_threshold:
+            self._optimize_td_loss2()
             self.updates += 1
+        else:
+            if self._step >= self.batch_size and self._step >= self.initial_memory_threshold:
+                self._optimize_td_loss1()
+                self._optimize_td_loss2()
+                self.updates += 1
 
     def _add_sample(self, state, action, reward, next_state, next_action, terminal):
 
         # assert len(action) == 1 + self.action_parameter_size
         self.replay_memory.append(state, action, reward, next_state, terminal=terminal)
 
-    def _optimize_td_loss(self):
+    def _optimize_td_loss1(self):
         if self._step < self.batch_size or self._step < self.initial_memory_threshold:
             return
         # Sample a batch from replay memory
@@ -489,6 +494,24 @@ class HHQNAgent(Agent):
             torch.nn.utils.clip_grad_norm_(self.actor.parameters(), self.clip_grad)
         self.actor_optimiser.step()
 
+        soft_update_target_network(self.actor, self.actor_target, self.tau_actor)
+
+
+
+    def _optimize_td_loss2(self):
+        if self._step < self.batch_size or self._step < self.initial_memory_threshold:
+            return
+        # Sample a batch from replay memory
+        states, actions, rewards, next_states, terminals = self.replay_memory.sample(self.batch_size, random_machine=self.np_random)
+        states = torch.from_numpy(states).to(self.device)    #将numpy转换为torch
+        actions_combined = torch.from_numpy(actions).to(self.device)  # make sure to separate actions and parameters
+        d_actions = actions_combined[:, 0].long()
+        actions = actions_combined[:, 1:4]
+        action_parameters = actions_combined[:, 4:8]
+        rewards = torch.from_numpy(rewards).to(self.device).squeeze()
+        next_states = torch.from_numpy(next_states).to(self.device)
+        terminals = torch.from_numpy(terminals).to(self.device).squeeze()
+
 
         # ---------------------- 下层可以理解为一个DDPG网络----------------------
         # ---------------------- optimize actor parameter （low）连续动作参数网络----------------------
@@ -505,9 +528,6 @@ class HHQNAgent(Agent):
 
         self.actor_param_critic.zero_grad()
         Q_loss.backward()
-
-        #如果将p-dqn中下面这个部分去掉，则性能将会明显下降，甚至不如hhqn
-
 
         # from copy import deepcopy
         # delta_a = deepcopy(action_params.grad.data)
@@ -548,10 +568,8 @@ class HHQNAgent(Agent):
             torch.nn.utils.clip_grad_norm_(self.actor_param_critic.parameters(), self.clip_grad)
         self.actor_param_critic_optimiser.step()
 
-        soft_update_target_network(self.actor, self.actor_target, self.tau_actor)
         soft_update_target_network(self.actor_param, self.actor_param_target, self.tau_actor_param)
         soft_update_target_network(self.actor_param_critic, self.actor_param_target_critic, self.tau_actor_param_critic)
-
     def save_models(self, prefix):
         """
         saves the target actor and critic models

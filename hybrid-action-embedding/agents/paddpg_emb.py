@@ -472,6 +472,7 @@ class PADDPGAgent(Agent):
         Q_val = self.critic(states, action_params[:, :self.num_actions], action_params[:, self.num_actions:]).mean()
         self.critic.zero_grad()
         Q_val.backward()
+
         from copy import deepcopy
         delta_a = deepcopy(action_params.grad.data)
         # 2 - apply inverting gradients and combine with gradients from actor

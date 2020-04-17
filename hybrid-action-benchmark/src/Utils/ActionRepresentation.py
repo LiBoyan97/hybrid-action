@@ -113,6 +113,7 @@ class Action_representation(NeuralNet):
     def unsupervised_loss(self, s1, a1, a2, s2, normalized=True):
         x, y = self.forward(s1, s2)
         similarity = self.get_match_scores(x)  # Negative euclidean
+        #两种方式：
         if normalized:
             loss = F.mse_loss(y,a2,reduce=True, size_average=True) + F.cross_entropy(similarity, a1, size_average=True)/self.norm_const \
                    + self.emb_reg * torch.pow(self.embeddings, 2).mean()/self.reduced_action_dim  #torch.pow 求幂次计算
